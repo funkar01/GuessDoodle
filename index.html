@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GuessDoodle - Premium Drawing Game</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <header>
+            <h1>GuessDoodle</h1>
+            <div class="header-info">
+                <button id="btnReady" class="btn-ready">Ready</button>
+                <span id="connectionStatus" class="badge">Offline</span>
+                <div id="roomDisplay" class="room-info" style="display: none;">
+                    <span>ID:</span> <span id="currentRoomId"></span>
+                    <button id="btnCopyRoom" title="Copy ID">📋</button>
+                    <button id="btnShareRoom" title="Share Link">🔗</button>
+                </div>
+                <div id="gameTimer" class="game-timer" style="display: none;">00:00</div>
+            </div>
+        </header>
+
+        <div id="roleDisplay" class="role-display" style="display: none;">
+            <div class="role-item rival">
+                <span class="role-label">Rival:</span>
+                <span id="rivalName" class="role-name">?</span>
+            </div>
+            <div class="role-item artist">
+                <span class="role-label">Artist:</span>
+                <span id="artistName" class="role-name">?</span>
+            </div>
+        </div>
+
+        <div id="playerListContainer" class="player-list-container">
+            <!-- Players will be added here dynamically -->
+        </div>
+
+        <!-- Target Word Display (Top Left) -->
+        <div id="targetWordDisplay" class="target-word-display" style="display: none;"></div>
+
+        <main class="canvas-wrapper">
+            <canvas id="drawingCanvas"></canvas>
+        </main>
+
+        <div class="toolbar">
+            <div class="tool-group">
+                <div class="color-picker-wrapper">
+                    <input type="color" id="colorPicker" value="#6C63FF" title="Choose Color">
+                </div>
+
+                <div class="brush-size-container">
+                    <label for="brushSize" class="sr-only">Brush Size</label>
+                    <input type="range" id="brushSize" min="1" max="50" value="5" title="Brush Size">
+                </div>
+            </div>
+
+            <div class="tool-group actions">
+                <button id="btnDraw" class="tool-btn active" title="Draw">
+                    <!-- Lucide: Pencil -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                    </svg>
+                </button>
+                <button id="btnErase" class="tool-btn" title="Erase">
+                    <!-- Lucide: Eraser -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21" />
+                        <path d="M22 21H7" />
+                        <path d="m5 11 9 9" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="tool-group history">
+                <button id="btnUndo" class="tool-btn" title="Undo">
+                    <!-- Lucide: Undo 2 -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 14 4 9l5-5" />
+                        <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11" />
+                    </svg>
+                </button>
+                <button id="btnClear" class="tool-btn danger" title="Clear All">
+                    <!-- Lucide: Trash 2 -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 6h18" />
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                        <line x1="10" x2="10" y1="11" y2="17" />
+                        <line x1="14" x2="14" y1="11" y2="17" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="wheelOverlay" class="wheel-overlay" style="display: none;">
+        <div class="wheel-container">
+            <h2>Selecting Rival...</h2>
+            <div class="wheel-wrapper">
+                <canvas id="wheelCanvas" width="300" height="300"></canvas>
+                <div class="wheel-pointer"></div>
+            </div>
+            <div id="rivalResult" class="rival-result"></div>
+            <button id="btnCloseWheel" class="btn-close-wheel" style="display: none;">Close</button>
+        </div>
+    </div>
+
+    <div id="wordInputOverlay" class="wheel-overlay" style="display: none;">
+        <div class="wheel-container">
+            <h2>Doodle this:</h2>
+            <input type="text" id="wordInput" placeholder="Enter a word..." maxlength="20">
+            <button id="btnSendWord" class="btn-ready">Send</button>
+        </div>
+    </div>
+
+    <div id="gameMessageOverlay" class="wheel-overlay" style="display: none;">
+        <div class="wheel-container">
+            <h2 id="gameMessageText">Waiting...</h2>
+        </div>
+    </div>
+
+    <div id="gameOverOverlay" class="wheel-overlay" style="display: none;">
+        <div class="wheel-container">
+            <h2 id="gameOverTitle">Game Over!</h2>
+            <p id="gameOverReason" class="game-over-reason"></p>
+            <p class="target-word-reveal">The word was: <span id="revealedWord"></span></p>
+            <button id="btnNewRound" class="btn-ready">New Round</button>
+        </div>
+    </div>
+
+    <div id="guessContainer" class="guess-container" style="display: none;">
+        <div id="chatLog" class="chat-log"></div>
+        <div class="guess-input-wrapper">
+            <input type="text" id="guessInput" placeholder="Type your guess..." maxlength="30">
+            <button id="btnGuess">Send</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

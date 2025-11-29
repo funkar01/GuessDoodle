@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GuessDoodle - Lobby</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        /* Specific styles for lobby page re-using main styles */
+        body {
+            background-image: radial-gradient(var(--surface-color) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        .lobby-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            padding: 3rem;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #fff 0%, var(--primary-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-left: 4px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 1.1rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.1);
+        }
+
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin: 0.5rem 0;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        .divider::before {
+            margin-right: 1rem;
+        }
+
+        .divider::after {
+            margin-left: 1rem;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(108, 99, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: #5a52d5;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(108, 99, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--text-muted);
+        }
+
+        .join-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .join-row input {
+            flex: 1;
+        }
+
+        .join-row button {
+            width: auto;
+            padding: 0 24px;
+        }
+
+        .error-msg {
+            color: var(--danger-color);
+            font-size: 0.875rem;
+            margin-top: 1rem;
+            min-height: 1.25rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="lobby-container">
+        <h1>GuessDoodle</h1>
+        <p class="subtitle">Draw, Guess, and Connect</p>
+
+        <div class="input-group">
+            <label for="displayName">Choose your nickname</label>
+            <input type="text" id="displayName" placeholder="e.g. Picasso" maxlength="15" autofocus>
+        </div>
+
+        <div class="actions">
+            <button id="btnCreate" class="btn btn-primary">
+                <span>🎨</span> Create New Room
+            </button>
+
+            <div class="divider">OR</div>
+
+            <div class="join-row">
+                <input type="text" id="roomId" placeholder="Enter Room ID">
+                <button id="btnJoin" class="btn btn-secondary">Join</button>
+            </div>
+        </div>
+
+        <p id="errorMsg" class="error-msg"></p>
+    </div>
+
+    <script>
+        const btnCreate = document.getElementById('btnCreate');
+        const btnJoin = document.getElementById('btnJoin');
+        const displayNameInput = document.getElementById('displayName');
+        const roomIdInput = document.getElementById('roomId');
+        const errorMsg = document.getElementById('errorMsg');
+
+        // Check for room param in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomParam = urlParams.get('room');
+        if (roomParam) {
+            roomIdInput.value = roomParam;
+            // Optional: Highlight that we are joining a specific room
+            roomIdInput.style.borderColor = 'var(--primary-color)';
+        }
+
+        function validateName() {
+            const name = displayNameInput.value.trim();
+            if (!name) {
+                errorMsg.textContent = 'Please enter a nickname first!';
+                displayNameInput.focus();
+                return false;
+            }
+            return name;
+        }
+
+        btnCreate.addEventListener('click', () => {
+            const name = validateName();
+            if (name) {
+                window.location.href = `index.html?name=${encodeURIComponent(name)}&host=true`;
+            }
+        });
+
+        btnJoin.addEventListener('click', () => {
+            const name = validateName();
+            if (!name) return;
+
+            const roomId = roomIdInput.value.trim();
+            if (!roomId) {
+                errorMsg.textContent = 'Please enter a Room ID to join.';
+                roomIdInput.focus();
+                return;
+            }
+
+            window.location.href = `index.html?name=${encodeURIComponent(name)}&room=${encodeURIComponent(roomId)}`;
+        });
+
+        // Allow Enter key to submit
+        displayNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') btnCreate.click();
+        });
+        roomIdInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') btnJoin.click();
+        });
+    </script>
+</body>
+
+</html>
