@@ -342,6 +342,34 @@ canvas {
     font-size: 1.2rem;
     text-transform: uppercase;
     letter-spacing: 1px;
+    animation: slideIn 0.3s ease-out;
+}
+
+.target-word-display {
+    position: absolute;
+    top: 160px;
+    left: 30px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 15px 20px;
+    z-index: 1000;
+    box-shadow: var(--shadow-lg);
+    font-size: 1.2rem;
+    color: var(--text-color);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideIn 0.3s ease-out;
+}
+
+.target-word-display span {
+    color: var(--primary-color);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 @keyframes slideIn {
@@ -450,87 +478,79 @@ canvas {
     font-weight: 600;
 }
 
-/* Game Over Overlay */
-#gameOverOverlay h2 {
-    font-size: 2.5rem;
-    margin-bottom: 10px;
-    color: var(--text-color);
-}
-
-.game-over-reason {
-    font-size: 1.2rem;
-    color: var(--text-muted);
-    margin-bottom: 20px;
-}
-
-.target-word-reveal {
-    font-size: 1.5rem;
-    margin-bottom: 30px;
-}
-
-.target-word-reveal span {
-    color: var(--primary-color);
-    font-weight: bold;
-    text-transform: uppercase;
-}
-
-@media (max-width: 600px) {
-    .guess-container {
-        width: 100%;
-        right: 0;
-        bottom: 0;
-        height: 200px;
-        border-radius: 12px 12px 0 0;
-        border-left: none;
-        border-right: none;
-        border-bottom: none;
-    }
-}
-
-/* Toolbar */
+/* Toolbar - Dark Glass Design */
 .toolbar {
     position: absolute;
     bottom: 30px;
     left: 50%;
     transform: translateX(-50%);
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border);
-    border-radius: 16px;
-    padding: 10px 20px;
     display: flex;
-    gap: 20px;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 24px;
+    background: rgba(30, 41, 59, 0.9);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
     z-index: 100;
-    box-shadow: var(--shadow-lg);
+    box-shadow:
+        0 20px 25px -5px rgba(0, 0, 0, 0.4),
+        0 8px 10px -6px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toolbar:hover {
+    transform: translateX(-50%) translateY(-2px);
+    box-shadow:
+        0 25px 30px -5px rgba(0, 0, 0, 0.5),
+        0 10px 12px -6px rgba(0, 0, 0, 0.4);
+}
+
+.toolbar.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    filter: grayscale(1);
 }
 
 .tool-group {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     position: relative;
 }
 
 .tool-group:not(:last-child)::after {
     content: '';
-    position: absolute;
-    right: -10px;
-    height: 20px;
+    display: block;
     width: 1px;
-    background: var(--glass-border);
+    height: 24px;
+    background: rgba(255, 255, 255, 0.15);
+    margin: 0 8px;
 }
 
+/* Tool Buttons */
 .tool-btn {
     background: transparent;
     border: none;
-    color: var(--text-muted);
+    color: #94a3b8;
+    /* Slate 400 */
     cursor: pointer;
-    padding: 8px;
-    border-radius: 8px;
-    transition: all 0.2s;
+    padding: 10px;
+    border-radius: 12px;
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 44px;
+    height: 44px;
+}
+
+.tool-btn svg {
+    width: 24px;
+    height: 24px;
+    stroke-width: 2px;
+    transition: all 0.2s;
 }
 
 .tool-btn:hover {
@@ -539,27 +559,33 @@ canvas {
 }
 
 .tool-btn.active {
-    background: var(--primary-color);
+    background: #6C63FF;
+    /* Primary Purple */
     color: white;
+    box-shadow: 0 4px 12px rgba(108, 99, 255, 0.3);
 }
 
 .tool-btn.danger:hover {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--danger-color);
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
 }
 
+/* Color Picker */
 .color-picker-wrapper {
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     overflow: hidden;
-    border: 2px solid white;
+    border: 2px solid rgba(255, 255, 255, 0.2);
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: all 0.2s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    position: relative;
 }
 
 .color-picker-wrapper:hover {
     transform: scale(1.1);
+    border-color: white;
 }
 
 #colorPicker {
@@ -572,10 +598,12 @@ canvas {
     background: none;
 }
 
+/* Brush Size Slider */
 .brush-size-container {
     display: flex;
     align-items: center;
     gap: 10px;
+    padding: 0 5px;
 }
 
 .brush-size-label {
@@ -584,8 +612,40 @@ canvas {
 }
 
 #brushSize {
+    -webkit-appearance: none;
     width: 100px;
-    accent-color: var(--primary-color);
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    outline: none;
+}
+
+#brushSize::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #6C63FF;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    transition: transform 0.1s;
+}
+
+#brushSize::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+#brushSize::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: #6C63FF;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    transition: transform 0.1s;
 }
 
 /* Utilities */

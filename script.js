@@ -434,6 +434,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleWordSelected(word) {
+        console.log('handleWordSelected called with:', word);
+        console.log('My Peer ID:', myPeerId);
+        console.log('Current Artist ID:', currentArtistId);
+        console.log('Current Rival ID:', currentRivalId);
+        console.log('Am I Artist?', myPeerId === currentArtistId);
+
         const wordInputOverlay = document.getElementById('wordInputOverlay');
         const gameMessageOverlay = document.getElementById('gameMessageOverlay');
         const targetWordDisplay = document.getElementById('targetWordDisplay');
@@ -448,15 +454,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Show persistent display for Artist
         if (myPeerId === currentArtistId) {
+            console.log('Showing word to Artist');
             targetWordDisplay.style.display = 'flex';
             targetWordDisplay.innerHTML = `Doodle this: <span>${word}</span>`;
             canDraw = true;
             guessContainer.style.display = 'none'; // Artist doesn't guess
         } else if (myPeerId === currentRivalId) {
+            console.log('Hiding word for Rival');
             targetWordDisplay.style.display = 'none';
             canDraw = false;
             guessContainer.style.display = 'none'; // Rival doesn't guess
         } else {
+            console.log('Hiding word for Guesser');
             // Guessers
             targetWordDisplay.style.display = 'none';
             canDraw = false;
@@ -795,6 +804,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // --- Expose for Debugging (Optional, can be removed in prod) ---
+    // window.debugGame = { ... };
 
     // Copy ID Button
     if (btnCopyRoom) {

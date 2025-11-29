@@ -19,7 +19,7 @@
                 <button id="btnReady" class="btn-ready">Ready</button>
                 <span id="connectionStatus" class="badge">Offline</span>
                 <div id="roomDisplay" class="room-info" style="display: none;">
-                    <span>ID:</span> <span id="currentRoomId"></span>
+                    <span>Room ID</span> <span id="currentRoomId" style="display:none"></span>
                     <button id="btnCopyRoom" title="Copy ID">📋</button>
                     <button id="btnShareRoom" title="Share Link">🔗</button>
                 </div>
@@ -67,6 +67,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                        <path d="M15 5l4 4" />
                     </svg>
                 </button>
                 <button id="btnErase" class="tool-btn" title="Erase">
@@ -86,8 +87,8 @@
                     <!-- Lucide: Undo 2 -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 14 4 9l5-5" />
-                        <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11" />
+                        <path d="M3 7v6h6" />
+                        <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
                     </svg>
                 </button>
                 <button id="btnClear" class="tool-btn danger" title="Clear All">
