@@ -282,6 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
             id: id,
             name: players[id] ? players[id].name : 'Unknown',
             isReady: players[id] ? players[id].isReady : false,
+            score: players[id] ? (players[id].score || 0) : 0,
             isHost: id === myPeerId // Host is always me since I am broadcasting
         }));
         broadcast({ type: 'updatePlayerList', list: list });
@@ -304,7 +305,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Name
             const nameSpan = document.createElement('span');
-            nameSpan.textContent = p.name + (p.id === myPeerId ? ' (You)' : '');
+            const score = p.score !== undefined ? p.score : 0;
+            nameSpan.textContent = `${p.name} (${score} pts)${p.id === myPeerId ? ' (You)' : ''}`;
             div.appendChild(nameSpan);
 
             container.appendChild(div);
@@ -493,6 +495,8 @@ document.addEventListener('DOMContentLoaded', () => {
             updateTimerUI(timeLeft);
 
             if (timeLeft <= 0) {
+                if (players[currentRivalId]) players[currentRivalId].score = (players[currentRivalId].score || 0) + 1;
+                broadcastPlayerList(); // Update scores for everyone
                 endGame('rival', 'Time\'s up!');
             }
         }, 1000);
@@ -587,6 +591,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Check match
         if (guess.toLowerCase() === targetWord.toLowerCase()) {
             // Artist Wins
+            if (players[currentArtistId]) players[currentArtistId].score = (players[currentArtistId].score || 0) + 1;
+            if (players[peerId]) players[peerId].score = (players[peerId].score || 0) + 1;
+            broadcastPlayerList(); // Update scores for everyone
             endGame('artist', `${playerName} guessed correctly!`, playerName);
         } else {
             // Broadcast chat message
@@ -641,7 +648,7 @@ document.addEventListener('DOMContentLoaded', () => {
             myPeerId = id;
 
             // Register myself
-            players[id] = { name: myName, isReady: false };
+            players[id] = { name: myName, isReady: false, score: 0 };
             playerOrder.push(id);
 
             if (isHost) {
@@ -727,7 +734,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Host handles join logic in handleConnection mostly, but we need to catch the name here
                 if (isHost) {
                     if (!players[data.peerId]) {
-                        players[data.peerId] = { name: data.name, isReady: false };
+                        players[data.peerId] = { name: data.name, isReady: false, score: 0 };
                         playerOrder.push(data.peerId);
                         broadcastPlayerList();
                     }
@@ -738,7 +745,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Update local players map for non-hosts to have names
                 data.list.forEach(p => {
                     if (p.id !== myPeerId) {
-                        players[p.id] = { name: p.name, isReady: p.isReady };
+                        players[p.id] = { name: p.name, isReady: p.isReady, score: p.score };
                     }
                 });
                 break;
@@ -804,6 +811,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+
 
     // --- Expose for Debugging (Optional, can be removed in prod) ---
     // window.debugGame = { ... };
