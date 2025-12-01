@@ -974,7 +974,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // We want to do multiple full spins (e.g. 5) + this offset.
 
         const centerAngle = targetIndex * step + step / 2;
-        const targetRotation = (2 * Math.PI) - centerAngle + (10 * Math.PI); // 5 full spins
+        // Adjust for top pointer (-90deg or -PI/2)
+        const targetRotation = (10 * Math.PI) - centerAngle - (Math.PI / 2);
 
         // We need to animate from 0 to targetRotation.
         // Using a simple ease-out would be better than physics loop for deterministic targeting.

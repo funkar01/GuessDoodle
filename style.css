@@ -1616,3 +1616,19 @@ canvas {
                 justify-content: center;
             }
         }
+
+        /* Fix Toolbar Position */
+        .toolbar {
+            position: fixed !important;
+            bottom: 30px;
+            max-width: 95vw;
+            width: max-content;
+        }
+
+        @media (max-width: 600px) {
+            .toolbar {
+                bottom: 20px;
+                padding: 10px 16px;
+                gap: 10px;
+            }
+        }
