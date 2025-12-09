@@ -1632,3 +1632,30 @@ canvas {
                 gap: 10px;
             }
         }
+
+        /* Voice Chat Button */
+        #btnMute {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-color);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-left: 10px;
+        }
+
+        #btnMute:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        #btnMute.muted {
+            background: rgba(255, 59, 48, 0.2);
+            border-color: var(--danger-color);
+            color: var(--danger-color);
+        }

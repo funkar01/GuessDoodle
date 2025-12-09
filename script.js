@@ -59,6 +59,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let peer = null;
     let connections = [];
 
+    // Voice Chat State
+    let localStream = null;
+    let audioCalls = {}; // { peerId: MediaConnection }
+    let isMuted = false;
+
     // Game State (Host Only)
     let gameTimer = null;
     let timeLeft = 60;
@@ -665,6 +670,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentRoomIdSpan.textContent = id;
                 connectionStatus.textContent = 'Online (Host)';
                 connectionStatus.classList.add('online');
+                initAudio(); // Host initializes audio immediately
             } else if (targetRoomId) {
                 // Join Mode: Connect to Host
                 const conn = peer.connect(targetRoomId);
@@ -681,6 +687,10 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error(err);
             alert('Connection Error: ' + err.type);
             connectionStatus.textContent = 'Error';
+        });
+
+        peer.on('call', (call) => {
+            handleIncomingCall(call);
         });
     }
 
@@ -752,6 +762,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         players[p.id] = { name: p.name, isReady: p.isReady, score: p.score };
                     }
                 });
+                updateAudioMesh(data.list);
                 break;
             case 'ready':
                 // Only Host needs to handle this to track readiness
@@ -1106,6 +1117,143 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         animate();
+    }
+
+    // --- Voice Chat Logic ---
+    const btnMute = document.getElementById('btnMute');
+    const iconMic = document.getElementById('iconMic');
+    const iconMicOff = document.getElementById('iconMicOff');
+
+    if (btnMute) {
+        btnMute.addEventListener('click', toggleMute);
+    }
+
+    async function initAudio() {
+        if (localStream) return;
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            // Initially mute if desired, or keep open. Let's keep open but allow mute.
+            // But we need to update UI to show mic is active.
+            if (btnMute) btnMute.style.display = 'inline-flex';
+        } catch (err) {
+            console.error('Failed to get local audio stream', err);
+            alert('Could not access microphone. Voice chat will be disabled.');
+        }
+    }
+
+    function toggleMute() {
+        if (!localStream) {
+            initAudio().then(() => {
+                // If we just initialized, we might want to mute immediately if that was the intent,
+                // but usually clicking mute means "I want to mute/unmute".
+                // If we weren't initialized, we are now unmuted (default).
+                // So if we want to toggle, we should check state.
+            });
+            return;
+        }
+
+        isMuted = !isMuted;
+        localStream.getAudioTracks().forEach(track => track.enabled = !isMuted);
+
+        if (isMuted) {
+            btnMute.classList.add('muted');
+            iconMic.style.display = 'none';
+            iconMicOff.style.display = 'block';
+        } else {
+            btnMute.classList.remove('muted');
+            iconMic.style.display = 'block';
+            iconMicOff.style.display = 'none';
+        }
+    }
+
+    function handleIncomingCall(call) {
+        console.log('Incoming call from', call.peer);
+        // Answer automatically with our stream (if we have one, or empty if not ready?)
+        // Better to ensure we have a stream or answer with audio only.
+
+        if (!localStream) {
+            // If we don't have a stream yet, try to get one, or answer without stream (listen only mode?)
+            // PeerJS requires a stream to answer if we want two-way.
+            // Let's try to get stream quickly.
+            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+                .then(stream => {
+                    localStream = stream;
+                    if (btnMute) btnMute.style.display = 'inline-flex';
+                    call.answer(localStream);
+                    setupCallEvents(call);
+                })
+                .catch(err => {
+                    console.error('Could not get stream to answer call', err);
+                    call.answer(); // Answer receive-only?
+                    setupCallEvents(call);
+                });
+        } else {
+            call.answer(localStream);
+            setupCallEvents(call);
+        }
+    }
+
+    function connectToAudioPeer(peerId) {
+        if (!localStream || audioCalls[peerId]) return;
+
+        console.log('Calling peer for audio:', peerId);
+        const call = peer.call(peerId, localStream);
+        setupCallEvents(call);
+        audioCalls[peerId] = call;
+    }
+
+    function setupCallEvents(call) {
+        call.on('stream', (remoteStream) => {
+            console.log('Received remote stream from', call.peer);
+            // Play stream
+            // Check if audio element exists for this peer
+            let audio = document.getElementById(`audio-${call.peer}`);
+            if (!audio) {
+                audio = document.createElement('audio');
+                audio.id = `audio-${call.peer}`;
+                audio.autoplay = true;
+                document.body.appendChild(audio);
+            }
+            audio.srcObject = remoteStream;
+        });
+
+        call.on('close', () => {
+            console.log('Call closed with', call.peer);
+            const audio = document.getElementById(`audio-${call.peer}`);
+            if (audio) audio.remove();
+            delete audioCalls[call.peer];
+        });
+
+        call.on('error', (err) => {
+            console.error('Call error:', err);
+        });
+    }
+
+    function updateAudioMesh(playerList) {
+        // Simple Mesh: Connect to everyone we are not connected to.
+        // To avoid duplicate calls, we can use a convention: Lower ID calls Higher ID.
+        // Or just check if we have a call.
+
+        if (!localStream) {
+            // Try to init audio if we are in a room
+            initAudio().then(() => {
+                updateAudioMesh(playerList);
+            });
+            return;
+        }
+
+        playerList.forEach(p => {
+            if (p.id !== myPeerId) {
+                // If we don't have a call with them
+                if (!audioCalls[p.id]) {
+                    // Convention: I call them if my ID < their ID (lexicographical)
+                    // This prevents double calling.
+                    if (myPeerId < p.id) {
+                        connectToAudioPeer(p.id);
+                    }
+                }
+            }
+        });
     }
 
 });
