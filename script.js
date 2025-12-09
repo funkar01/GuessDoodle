@@ -536,6 +536,10 @@ document.addEventListener('DOMContentLoaded', () => {
             title.style.color = 'var(--danger-color)';
         }
 
+        // Trigger Effects
+        playWinSound();
+        triggerConfetti();
+
         // Only Host can start new round
         if (isHost) {
             btnNewRound.style.display = 'inline-block';
@@ -1008,5 +1012,100 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     updateToolbarState();
+
+    // --- Sound & Particle Effects ---
+    function playWinSound() {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+
+            const ctx = new AudioContext();
+            const now = ctx.currentTime;
+
+            // Simple major arpeggio: C5, E5, G5, C6
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+
+            notes.forEach((freq, i) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+
+                gain.gain.setValueAtTime(0.1, now + i * 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.5);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start(now + i * 0.1);
+                osc.stop(now + i * 0.1 + 0.5);
+            });
+        } catch (e) {
+            console.error('Audio play failed', e);
+        }
+    }
+
+    function triggerConfetti() {
+        const canvas = document.createElement('canvas');
+        canvas.style.position = 'fixed';
+        canvas.style.top = '0';
+        canvas.style.left = '0';
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        canvas.style.pointerEvents = 'none';
+        canvas.style.zIndex = '9999';
+        document.body.appendChild(canvas);
+
+        const ctx = canvas.getContext('2d');
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+
+        const particles = [];
+        const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#00FFFF', '#FF00FF'];
+
+        for (let i = 0; i < 100; i++) {
+            particles.push({
+                x: width / 2,
+                y: height / 2,
+                vx: (Math.random() - 0.5) * 10,
+                vy: (Math.random() - 0.5) * 10 - 5, // Upward bias
+                color: colors[Math.floor(Math.random() * colors.length)],
+                size: Math.random() * 5 + 2,
+                life: 100
+            });
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            let active = false;
+
+            particles.forEach(p => {
+                if (p.life > 0) {
+                    active = true;
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.2; // Gravity
+                    p.life--;
+
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = p.life / 100;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+
+            if (active) {
+                requestAnimationFrame(animate);
+            } else {
+                document.body.removeChild(canvas);
+            }
+        }
+
+        animate();
+    }
 
 });
